@@ -1,0 +1,15 @@
+datasets:
+  - tcga_brca
+
+task_col: OS
+extra_cols:
+  - OS_event
+  - OS_days
+task_type: survival_cox
+metrics:
+  - cindex
+label_dict:
+  0: notused
+  
+sample_col: case_id
+num_samples: 2
