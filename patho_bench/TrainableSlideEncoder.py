@@ -1,6 +1,7 @@
 import copy
 from torch import nn
 from patho_bench.optim.NLLSurvLoss import NLLSurvLoss
+from patho_bench.optim.CoxLoss import CoxLoss
 from patho_bench.Pooler import Pooler
 
 """
@@ -76,6 +77,10 @@ class TrainableSlideEncoder(nn.Module):
             y_event = batch['labels']['extra_attrs'][f'{self.task_name}_event'].to(self.device)
             loss = self.loss(logits, y_bins.unsqueeze(0), y_event.unsqueeze(0))
         # Compute balanced loss
+        elif isinstance(self.loss, CoxLoss):
+            y_event = batch['labels']['extra_attrs'][f'{self.task_name}_event'].bool().to(self.device)
+            y_time = batch['labels']['extra_attrs'][f'{self.task_name}_days'].to(self.device)
+            loss = self.loss(logits, y_event.unsqueeze(0), y_time.unsqueeze(0))
         elif isinstance(self.loss, dict):
             assert batch.get('current_iter') is not None, "Current iter must be provided for weighted loss, but got None from batch. Please check the dataloader."
             loss = self.loss[batch['current_iter']](logits.squeeze(), batch['labels'][self.task_name].to(self.device).squeeze())

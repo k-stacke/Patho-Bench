@@ -243,7 +243,7 @@ class FinetuningExperiment(LoggingMixin, ClassificationMixin, SurvivalMixin, Bas
                     prob = torch.softmax(logits[0], dim=0).cpu().detach().numpy()
                     labels_all.append(label)
                     preds_all.append(prob)
-                elif self.task_type == 'survival':
+                elif self.task_type.startswith('survival'):
                     label = {'survival_event': batch['labels']['extra_attrs'][f'{self.model_kwargs["task_name"]}_event'],
                             'survival_time': batch['labels']['extra_attrs'][f'{self.model_kwargs["task_name"]}_days']}
                     logits = model(batch, output='logits') # Forward pass
@@ -255,7 +255,7 @@ class FinetuningExperiment(LoggingMixin, ClassificationMixin, SurvivalMixin, Bas
         if self.task_type == 'classification':
             labels_all = np.array(labels_all)
             preds_all = np.array(preds_all)
-        elif self.task_type == 'survival':
+        elif self.task_type.startswith('survival'):
             labels_all = {k: np.array([v[k][0] for v in labels_all]) for k in labels_all[0].keys()}
             preds_all = np.array(preds_all)
 
@@ -276,7 +276,7 @@ class FinetuningExperiment(LoggingMixin, ClassificationMixin, SurvivalMixin, Bas
             self.precision_recall(labels, preds, self.model_kwargs['num_classes'], saveto = os.path.join(save_dir, "pr_curves.png"))
             scores = self.classification_metrics(labels, preds, self.model_kwargs['num_classes'], saveto = os.path.join(save_dir, "metrics.json"))
             return scores['overall']
-        elif self.task_type == 'survival':
+        elif self.task_type.startswith('survival'):
             scores = self.survival_metrics(labels['survival_event'], labels['survival_time'], preds, saveto = os.path.join(save_dir, "metrics.json"))
             return scores
 
@@ -298,7 +298,7 @@ class FinetuningExperiment(LoggingMixin, ClassificationMixin, SurvivalMixin, Bas
             bootstraps = self.bootstrap(labels_across_folds, preds_across_folds, self.num_bootstraps)
             if self.task_type == 'classification':
                 scores_across_folds = [self.classification_metrics(labels, preds, self.model_kwargs['num_classes'])['overall'] for labels, preds in tqdm(bootstraps, desc=f'Computing {self.num_bootstraps} bootstraps')]
-            elif self.task_type == 'survival':
+            elif self.task_type.startswith('survival'):
                 scores_across_folds = [self.survival_metrics(labels['survival_event'], labels['survival_time'], preds) for labels, preds in tqdm(bootstraps, desc=f'Computing {self.num_bootstraps} bootstraps')]
             
             # Save bootstraps

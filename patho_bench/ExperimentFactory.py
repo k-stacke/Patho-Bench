@@ -14,6 +14,10 @@ from patho_bench.helpers.GPUManager import GPUManager
 from patho_bench.optim.NLLSurvLoss import NLLSurvLoss
 from sklearn.utils.class_weight import compute_class_weight
 from trident.slide_encoder_models.load import encoder_factory
+from patho_bench.optim.CoxLoss import CoxLoss
+
+
+
 
 """
 This file contains the ExperimentFactory class which is responsible for instantiating the appropriate experiment object.
@@ -308,6 +312,8 @@ class ExperimentFactory:
         ###### Get loss ################################################################
         if task_info['task_type'] == 'survival':
             loss = NLLSurvLoss(alpha=0.0, eps=1e-7, reduction='mean')
+        elif task_info['task_type'] == 'survival_cox':
+            loss = CoxLoss(ties_method='efron', reduction='mean')
         elif balanced:
             # Balanced loss is a dict of losses for each fold
             fold_weights = {fold: compute_class_weight('balanced', classes = np.array(sorted(split.unique_classes(task_name))), y = split.y(task_name, fold, 'train')) for fold in range(split.num_folds)}

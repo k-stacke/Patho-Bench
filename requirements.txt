@@ -6,3 +6,4 @@ lovely-tensors
 seaborn
 datasets
 einops
+torchsurv
